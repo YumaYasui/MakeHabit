@@ -5,20 +5,29 @@ export const MAX_HABITS = 10;
 
 export type Habit = {
   id: string;
+  user_id: string;
+  room_id: string | null;
   name: string;
   icon: string;
   color: HabitColor;
   start_date: string;
   archived_at: string | null;
   habit_schedules: Schedule[];
-  stamps: Stamp[];
+  stamps: (Stamp & { id: string; reactions: { user_id: string }[] })[];
 };
 
-const HABIT_COLUMNS =
-  "id, name, icon, color, start_date, archived_at, habit_schedules(weekdays, valid_from), stamps(date, is_late)";
+export const HABIT_COLUMNS =
+  "id, user_id, room_id, name, icon, color, start_date, archived_at, habit_schedules(weekdays, valid_from), stamps(id, date, is_late, reactions(user_id))";
 
-export async function fetchHabits(supabase: SupabaseClient, { archived }: { archived: boolean }) {
-  const query = supabase.from("habits").select(HABIT_COLUMNS).order("created_at");
+/** ログイン中のユーザーID（proxy で確認済みの JWT から取り出す） */
+export async function currentUserId(supabase: SupabaseClient): Promise<string | null> {
+  const { data } = await supabase.auth.getClaims();
+  return data?.claims.sub ?? null;
+}
+
+/** 自分の習慣（ルームの仲間の習慣も見られるため、user_id で絞る） */
+export async function fetchHabits(supabase: SupabaseClient, userId: string, { archived }: { archived: boolean }) {
+  const query = supabase.from("habits").select(HABIT_COLUMNS).eq("user_id", userId).order("created_at");
   const { data, error } = await (archived ? query.not("archived_at", "is", null) : query.is("archived_at", null));
   if (error) throw error;
   return data as Habit[];
@@ -58,6 +67,11 @@ export const HABIT_ICONS = ["✅", "🏃", "💪", "🧘", "📚", "✍️", "�
 export function errorMessage(error: { message?: string } | null | undefined): string {
   const message = error?.message ?? "";
   if (message.includes("habit_limit_reached")) return `習慣は${MAX_HABITS}個までです。どれかをアーカイブしてください。`;
+  if (message.includes("room_full")) return "このルームは満員です（最大10人）。";
+  if (message.includes("removed_from_room")) return "このルームには参加できません。";
+  if (message.includes("invite_not_found")) return "この招待URLは使えません。オーナーに新しいURLをもらってください。";
+  if (message.includes("new_owner_required")) return "次のオーナーを選んでください。";
+  if (message.includes("not_room_owner")) return "オーナーだけができる操作です。";
   if (message.includes("row-level security")) return "この日はスタンプを押せません。";
   return "うまくいきませんでした。通信状況を確認して、もう一度お試しください。";
 }

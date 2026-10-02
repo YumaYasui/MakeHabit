@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { usePraise } from "./praise-provider";
 
 /** スタンプの状態を持ち、押す・取り消すを画面に即反映してから保存する */
-export function useStamps(habit: Habit, today: string) {
+export function useStamps(habit: Habit, today: string, onSaved?: () => void) {
   const { showPraise, showError } = usePraise();
   const [stamps, setStamps] = useState(() => new Map(habit.stamps.map((s) => [s.date, s.is_late])));
   const [pending, setPending] = useState<ReadonlySet<string>>(new Set());
@@ -55,6 +55,7 @@ export function useStamps(habit: Habit, today: string) {
       rest.delete(date);
       return rest;
     });
+    if (!failed) onSaved?.();
     if (failed) {
       setStamps((cur) => {
         const reverted = new Map(cur);

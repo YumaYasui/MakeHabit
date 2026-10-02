@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { NEXT_PATH_COOKIE } from "@/lib/next-path";
 import { createClient } from "@/lib/supabase/client";
 
-export function LoginButton() {
+export function LoginButton({ next }: { next: string }) {
   const [loading, setLoading] = useState(false);
 
   async function login() {
     setLoading(true);
+    // Google から戻ったあとに開くページ。リダイレクトURLの許可リストを増やさないよう cookie で渡す
+    document.cookie = `${NEXT_PATH_COOKIE}=${encodeURIComponent(next)}; path=/; max-age=600; samesite=lax`;
     const { error } = await createClient().auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },

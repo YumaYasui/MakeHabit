@@ -11,8 +11,14 @@ type Props = {
   today: string;
   stamps: ReadonlyMap<string, boolean>;
   pending: ReadonlySet<string>;
-  /** 渡さなければ閲覧のみ */
+  /** スタンプを押す・取り消す。渡さなければ閲覧のみ */
   onToggle?: (date: string) => void;
+  /** 日付ごとの👏の数 */
+  claps?: ReadonlyMap<string, number>;
+  /** ルームの仲間のカレンダー：スタンプをタップして👏を送る */
+  onClap?: (date: string) => void;
+  /** 自分が👏を送った日 */
+  myClaps?: ReadonlySet<string>;
 };
 
 function shiftMonth(ym: { y: number; m: number }, delta: number) {
@@ -20,7 +26,7 @@ function shiftMonth(ym: { y: number; m: number }, delta: number) {
   return { y: Math.floor(index / 12), m: (index % 12) + 1 };
 }
 
-export function StampCalendar({ habit, today, stamps, pending, onToggle }: Props) {
+export function StampCalendar({ habit, today, stamps, pending, onToggle, claps, onClap, myClaps }: Props) {
   const toYm = (date: string) => ({ y: Number(date.slice(0, 4)), m: Number(date.slice(5, 7)) });
   const [ym, setYm] = useState(() => toYm(today));
   const first = toYm(habit.start_date);
@@ -59,6 +65,8 @@ export function StampCalendar({ habit, today, stamps, pending, onToggle }: Props
           const stamped = stamps.has(date);
           const missed = scheduled && !stamped && date < today;
           const editable = !!onToggle && isStampable(date, today, habit.start_date);
+          const clappable = !!onClap && stamped;
+          const clapCount = claps?.get(date) ?? 0;
           const day = Number(date.slice(8));
 
           const cell = (
@@ -76,20 +84,35 @@ export function StampCalendar({ habit, today, stamps, pending, onToggle }: Props
                   {missed && <span className="absolute -bottom-1.5 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-stone-400" />}
                 </span>
               )}
+              {clapCount > 0 && (
+                <span
+                  className={`absolute -top-1 -right-1 rounded-full px-1 text-[10px] leading-4 font-bold shadow-sm ${
+                    myClaps?.has(date) ? "bg-amber-300 text-stone-900" : "bg-white text-stone-700 dark:bg-stone-700 dark:text-stone-100"
+                  }`}
+                >
+                  👏{clapCount}
+                </span>
+              )}
             </>
           );
 
-          return editable ? (
-            <button
-              key={date}
-              onClick={() => onToggle(date)}
-              disabled={pending.has(date)}
-              aria-label={`${ym.m}月${day}日${stamped ? "のスタンプを取り消す" : "にスタンプを押す"}`}
-              className="relative flex aspect-square items-center justify-center active:scale-90"
-            >
-              {cell}
-            </button>
-          ) : (
+          if (editable || clappable) {
+            const label = editable
+              ? `${ym.m}月${day}日${stamped ? "のスタンプを取り消す" : "にスタンプを押す"}`
+              : `${ym.m}月${day}日のスタンプに${myClaps?.has(date) ? "送った👏を取り消す" : "👏を送る"}`;
+            return (
+              <button
+                key={date}
+                onClick={() => (editable ? onToggle!(date) : onClap!(date))}
+                disabled={pending.has(date)}
+                aria-label={label}
+                className="relative flex aspect-square items-center justify-center active:scale-90"
+              >
+                {cell}
+              </button>
+            );
+          }
+          return (
             <div key={date} className="relative flex aspect-square items-center justify-center">
               {cell}
             </div>
@@ -116,6 +139,7 @@ export function StampCalendar({ habit, today, stamps, pending, onToggle }: Props
         </li>
       </ul>
       {onToggle && <p className="mt-2 text-xs text-stone-500">今日と過去7日以内の日は、タップしてスタンプを押せます。</p>}
+      {onClap && <p className="mt-2 text-xs text-stone-500">スタンプをタップすると👏を送れます。</p>}
     </section>
   );
 }

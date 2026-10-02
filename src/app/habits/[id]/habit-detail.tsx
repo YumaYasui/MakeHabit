@@ -16,6 +16,8 @@ export function HabitDetail({ habit, today }: { habit: Habit; today: string }) {
   const { stamps, stats, toggle, pending } = useStamps(habit, today);
   const [busy, setBusy] = useState(false);
   const archived = habit.archived_at !== null;
+  const isRoom = habit.room_id !== null;
+  const claps = new Map(habit.stamps.filter((st) => st.reactions.length > 0).map((st) => [st.date, st.reactions.length]));
 
   async function setArchived(value: boolean) {
     setBusy(true);
@@ -49,8 +51,16 @@ export function HabitDetail({ habit, today }: { habit: Habit; today: string }) {
     <div className="space-y-4">
       {archived && (
         <p className="rounded-2xl bg-stone-200 px-4 py-3 text-sm dark:bg-stone-800">
-          アーカイブ中の習慣です。記録を見ることだけできます。
+          {isRoom
+            ? "ルームから抜けた習慣です。記録を見ることだけできます。招待URLから再参加すると記録を引き継げます。"
+            : "アーカイブ中の習慣です。記録を見ることだけできます。"}
         </p>
+      )}
+      {isRoom && !archived && (
+        <Link href={`/rooms/${habit.room_id}`} className={`flex items-center justify-between rounded-2xl px-4 py-3 font-bold ${COLOR_CLASSES[habit.color].soft}`}>
+          <span>👥 ルームのみんなの様子を見る</span>
+          <span>›</span>
+        </Link>
       )}
 
       <p className="text-sm text-stone-500 dark:text-stone-400">実施日：{formatWeekdays(currentWeekdays(habit, today))}</p>
@@ -67,20 +77,25 @@ export function HabitDetail({ habit, today }: { habit: Habit; today: string }) {
         ))}
       </dl>
 
-      <StampCalendar habit={habit} today={today} stamps={stamps} pending={pending} onToggle={archived ? undefined : toggle} />
+      <StampCalendar habit={habit} today={today} stamps={stamps} pending={pending} claps={claps} onToggle={archived ? undefined : toggle} />
 
       <div className="grid gap-2 pt-2">
         {!archived && (
           <Link href={`/habits/${habit.id}/edit`} className="rounded-2xl bg-white py-3.5 text-center font-bold shadow-sm dark:bg-stone-900">
-            編集する
+            {isRoom ? "自分の曜日を変更する" : "編集する"}
           </Link>
         )}
-        <button onClick={() => setArchived(!archived)} disabled={busy} className="rounded-2xl bg-white py-3.5 font-bold shadow-sm disabled:opacity-50 dark:bg-stone-900">
-          {archived ? "アーカイブから戻す" : "アーカイブする"}
-        </button>
-        <button onClick={remove} disabled={busy} className="py-3 text-sm font-bold text-red-600 disabled:opacity-50">
-          削除する
-        </button>
+        {/* ルームの習慣は、ルームから退出するとアーカイブになる */}
+        {!isRoom && (
+          <button onClick={() => setArchived(!archived)} disabled={busy} className="rounded-2xl bg-white py-3.5 font-bold shadow-sm disabled:opacity-50 dark:bg-stone-900">
+            {archived ? "アーカイブから戻す" : "アーカイブする"}
+          </button>
+        )}
+        {(!isRoom || archived) && (
+          <button onClick={remove} disabled={busy} className="py-3 text-sm font-bold text-red-600 disabled:opacity-50">
+            削除する
+          </button>
+        )}
       </div>
     </div>
   );

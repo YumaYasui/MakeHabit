@@ -2,15 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DisplayNameForm } from "@/components/display-name-form";
 import { PageHeader } from "@/components/page-header";
-import { fetchHabits } from "@/lib/habits";
+import { currentUserId, fetchHabits } from "@/lib/habits";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const { data: profile } = await supabase.from("profiles").select("display_name").maybeSingle();
+  const userId = await currentUserId(supabase);
+  if (!userId) redirect("/login");
+  const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle();
   if (!profile) redirect("/login");
-  const archived = await fetchHabits(supabase, { archived: true });
+  const archived = await fetchHabits(supabase, userId, { archived: true });
 
   return (
     <>
@@ -31,6 +33,7 @@ export default async function SettingsPage() {
                   <Link href={`/habits/${habit.id}`} className="flex items-center gap-2 px-4 py-3.5">
                     <span>{habit.icon}</span>
                     <span className="flex-1 truncate">{habit.name}</span>
+                    {habit.room_id && <span className="text-xs text-stone-500">ルーム</span>}
                     <span className="text-stone-400">›</span>
                   </Link>
                 </li>

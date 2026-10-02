@@ -1,7 +1,9 @@
+import { safeNextPath } from "@/lib/next-path";
 import { LoginButton } from "./login-button";
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
+  const nextPath = safeNextPath(next);
 
   return (
     <div className="flex min-h-[80dvh] flex-col justify-center gap-10">
@@ -17,7 +19,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </p>
       </div>
       {error && <p className="text-center text-sm text-red-600">ログインできませんでした。もう一度お試しください。</p>}
-      <LoginButton />
+      {nextPath.startsWith("/join/") && (
+        <p className="text-center text-sm font-bold">ルームに招待されています。ログインして参加しましょう！</p>
+      )}
+      <LoginButton next={nextPath} />
     </div>
   );
 }

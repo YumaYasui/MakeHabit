@@ -2,17 +2,19 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { appToday } from "@/lib/dates";
-import { fetchHabits, MAX_HABITS } from "@/lib/habits";
+import { currentUserId, fetchHabits, MAX_HABITS } from "@/lib/habits";
 import { createClient } from "@/lib/supabase/server";
 import { HabitCard } from "./habit-card";
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const { data: profile } = await supabase.from("profiles").select("display_name, onboarded").maybeSingle();
+  const userId = await currentUserId(supabase);
+  if (!userId) redirect("/login");
+  const { data: profile } = await supabase.from("profiles").select("display_name, onboarded").eq("id", userId).maybeSingle();
   if (!profile) redirect("/login");
   if (!profile.onboarded) redirect("/welcome");
 
-  const habits = await fetchHabits(supabase, { archived: false });
+  const habits = await fetchHabits(supabase, userId, { archived: false });
   const today = appToday();
   const canAdd = habits.length < MAX_HABITS;
 
@@ -21,9 +23,14 @@ export default async function HomePage() {
       <PageHeader
         title={`${profile.display_name}さんの習慣`}
         right={
-          <Link href="/settings" aria-label="設定" className="flex size-11 items-center justify-center rounded-full text-xl hover:bg-stone-200 dark:hover:bg-stone-800">
-            ⚙️
-          </Link>
+          <>
+            <Link href="/rooms" aria-label="ルーム" className="flex size-11 items-center justify-center rounded-full text-xl hover:bg-stone-200 dark:hover:bg-stone-800">
+              👥
+            </Link>
+            <Link href="/settings" aria-label="設定" className="flex size-11 items-center justify-center rounded-full text-xl hover:bg-stone-200 dark:hover:bg-stone-800">
+              ⚙️
+            </Link>
+          </>
         }
       />
 

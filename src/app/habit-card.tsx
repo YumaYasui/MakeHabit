@@ -7,8 +7,8 @@ import { formatWeekdays } from "@/lib/dates";
 import { isScheduledDay } from "@/lib/habit-stats";
 import { COLOR_CLASSES, currentWeekdays, type Habit } from "@/lib/habits";
 
-export function HabitCard({ habit, today }: { habit: Habit; today: string }) {
-  const { stamps, stats, toggle, pending } = useStamps(habit, today);
+export function HabitCard({ habit, today, onSaved }: { habit: Habit; today: string; onSaved?: () => void }) {
+  const { stamps, stats, toggle, pending } = useStamps(habit, today, onSaved);
   const stamped = stamps.has(today);
   const isRestDay = !isScheduledDay(today, habit.habit_schedules);
 
@@ -20,6 +20,7 @@ export function HabitCard({ habit, today }: { habit: Habit; today: string }) {
           {habit.name}
         </p>
         <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+          {habit.room_id && <span className="mr-2 rounded-full bg-stone-100 px-2 py-0.5 dark:bg-stone-800">👥 ルーム</span>}
           {formatWeekdays(currentWeekdays(habit, today))}
           {isRestDay && <span className="ml-2 rounded-full bg-stone-100 px-2 py-0.5 dark:bg-stone-800">今日はお休み</span>}
         </p>

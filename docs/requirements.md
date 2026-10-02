@@ -119,8 +119,8 @@
 
 #### 基本
 
-- 1ルーム1習慣。ルームの習慣名はオーナーが決める
-- 習慣名を変更できるのはオーナーだけ
+- 1ルーム1習慣。ルームの習慣名・アイコン・色はオーナーが決める
+- 習慣名・アイコン・色を変更できるのはオーナーだけ（変更はメンバー全員の習慣に反映される）
 - **実施する曜日は各メンバーが自分で決める**（参加時に設定し、後から変更できる）
 - ルームの習慣は各メンバーの10個の上限に含まれる。上限に達している人は参加できない
 - 1ルームの最大人数は10人 ※暫定
@@ -207,16 +207,16 @@ profiles            ユーザー
   id (= auth.users.id), display_name, created_at
 
 rooms               ルーム
-  id, name, owner_id, invite_token, created_at, deleted_at (削除時に設定)
+  id, name, icon, color, owner_id, invite_token, created_at, deleted_at (削除時に設定)
 
 room_members        ルームのメンバー
-  room_id, user_id, joined_at,
-  left_at (退出・外された時に設定), left_reason ('left' | 'removed')
+  room_id, user_id, habit_id, joined_at,
+  left_at (退出・外された時に設定), left_reason ('left' | 'removed' | 'room_deleted')
   ※ left_reason = 'removed' の人は再参加できない
 
 habits              習慣（ルームの習慣は、メンバーごとに1行持つ）
   id, user_id, room_id (個人の習慣はNULL),
-  name (ルームの習慣は rooms.name を使う), icon, color,
+  name, icon, color (ルームの習慣は rooms の値をコピーして揃える),
   start_date (作成日 or ルーム参加日), archived_at, created_at
 
 habit_schedules     曜日設定の履歴
@@ -233,7 +233,7 @@ reactions           リアクション
 ```
 
 - ある日が実施日かどうかは、`valid_from` がその日以前で最も新しい `habit_schedules` の行で判定する
-- ルームが削除されても習慣名を表示できるよう、アーカイブ時に rooms.name を habits.name にコピーする
+- ルームの名前・アイコン・色はメンバーの習慣にコピーしておくので、ルームが削除されても習慣名を表示できる
 - 「全員達成」は、ルームの各メンバーの習慣・曜日設定・スタンプから計算する（保存しない）
 
 ---

@@ -2,7 +2,7 @@
 
 やったらスタンプ。続けた日が目に見える、スマホブラウザ向けの習慣化アプリ。
 
-要件は [docs/requirements.md](docs/requirements.md) を参照。現在はフェーズ1（ひとりで使える機能）まで実装済み。
+要件は [docs/requirements.md](docs/requirements.md) を参照。フェーズ1（ひとりで使える機能）とフェーズ2（ルーム機能）を実装済み。
 
 ## 技術構成
 
@@ -14,10 +14,11 @@
 
 | パス | 内容 |
 |---|---|
-| `src/app` | 画面（ホーム、習慣の詳細・追加・編集、設定、ログイン） |
+| `src/app` | 画面（ホーム、習慣、ルーム、招待、設定、ログイン） |
 | `src/lib/habit-stats.ts` | 累計・連続の計算 |
 | `src/lib/praise.ts` | 褒める言葉と節目の判定 |
 | `src/lib/dates.ts` | 午前3時区切りの日付計算 |
+| `src/lib/room-stats.ts` | ルームの全員達成・今日の状況 |
 | `supabase/migrations` | テーブル・アクセス制御・関数の定義 |
 
 ## 本番環境の準備
@@ -43,6 +44,6 @@ npm run dev                 # http://localhost:3000
 ## テスト
 
 ```bash
-npm test        # 累計・連続・褒める言葉の単体テスト
+npm test        # 累計・連続・褒める言葉・全員達成の単体テスト
 npm run lint
 ```
