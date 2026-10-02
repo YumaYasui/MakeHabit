@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --animate-toast-in: toast-in 0.25s ease-out;
+  --animate-stamp: stamp 0.3s ease-out;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes stamp {
+  0% { transform: scale(1.6) rotate(-12deg); opacity: 0; }
+  60% { transform: scale(0.92) rotate(-12deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-12deg); }
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
