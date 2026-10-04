@@ -2,7 +2,7 @@
 
 やったらスタンプ。続けた日が目に見える、スマホブラウザ向けの習慣化アプリ。
 
-要件は [docs/requirements.md](docs/requirements.md) を参照。フェーズ1（ひとりで使える機能）とフェーズ2（ルーム機能）を実装済み。
+要件は [docs/requirements.md](docs/requirements.md)（人間向け）と [docs/SPEC.md](docs/SPEC.md)（AI向け）を参照。フェーズ1（ひとりで使える機能）とフェーズ2（ルーム機能）を実装済み。
 
 ## 技術構成
 
