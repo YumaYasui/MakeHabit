@@ -10,11 +10,13 @@ export default async function HomePage() {
   const supabase = await createClient();
   const userId = await currentUserId(supabase);
   if (!userId) redirect("/login");
-  const { data: profile } = await supabase.from("profiles").select("display_name, onboarded").eq("id", userId).maybeSingle();
+  // プロフィールと習慣は同時に取りに行く
+  const [{ data: profile }, habits] = await Promise.all([
+    supabase.from("profiles").select("display_name, onboarded").eq("id", userId).maybeSingle(),
+    fetchHabits(supabase, userId, { archived: false }),
+  ]);
   if (!profile) redirect("/login");
   if (!profile.onboarded) redirect("/welcome");
-
-  const habits = await fetchHabits(supabase, userId, { archived: false });
   const today = appToday();
   const canAdd = habits.length < MAX_HABITS;
 

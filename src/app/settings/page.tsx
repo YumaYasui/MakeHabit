@@ -10,9 +10,11 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const userId = await currentUserId(supabase);
   if (!userId) redirect("/login");
-  const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle();
+  const [{ data: profile }, archived] = await Promise.all([
+    supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle(),
+    fetchHabits(supabase, userId, { archived: true }),
+  ]);
   if (!profile) redirect("/login");
-  const archived = await fetchHabits(supabase, userId, { archived: true });
 
   return (
     <>

@@ -21,20 +21,16 @@ export type RoomMember = {
 
 /** ルームと、参加中のメンバー（参加日順）とその習慣。参加していなければ null */
 export async function fetchRoom(supabase: SupabaseClient, roomId: string) {
-  const { data: room, error } = await supabase
-    .from("rooms")
-    .select("id, name, icon, color, owner_id, invite_token")
-    .eq("id", roomId)
-    .maybeSingle<Room>();
+  // ルームとメンバー一覧は同時に取りに行く
+  const [roomResult, membersResult] = await Promise.all([
+    supabase.from("rooms").select("id, name, icon, color, owner_id, invite_token").eq("id", roomId).maybeSingle<Room>(),
+    supabase.from("room_members").select("user_id, joined_at, habit_id").eq("room_id", roomId).order("joined_at"),
+  ]);
+  const { data: room, error } = roomResult;
   if (error?.code === "22P02") return null;
   if (error) throw error;
   if (!room) return null;
-
-  const { data: memberRows, error: membersError } = await supabase
-    .from("room_members")
-    .select("user_id, joined_at, habit_id")
-    .eq("room_id", roomId)
-    .order("joined_at");
+  const { data: memberRows, error: membersError } = membersResult;
   if (membersError) throw membersError;
 
   const [profiles, habits] = await Promise.all([
