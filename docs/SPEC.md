@@ -372,4 +372,5 @@ DB側で強制していること：
 | ROOM-44 | `src/lib/room-stats.ts`（テスト：`room-stats.test.ts`） |
 | AUTH-02 | `src/lib/next-path.ts`、`src/proxy.ts`、`src/app/auth/callback/route.ts` |
 | データモデル・RLS・RPC | `supabase/migrations/20261002000000_phase1.sql`、`20261003000000_phase2_rooms.sql` |
+| 本番DBの初期設定 | `supabase/setup.sql`（migrations をつなげたもの。migrations を変えたら作り直す） |
 | 本番公開の手順 | `README.md` |

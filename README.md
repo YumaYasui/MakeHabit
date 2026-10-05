@@ -23,7 +23,7 @@
 
 ## 本番環境の準備
 
-1. **Supabase**：プロジェクトを作り、`supabase/migrations` の SQL を SQL Editor で実行する（または `npx supabase link` → `npx supabase db push`）
+1. **Supabase**：プロジェクトを作り、`supabase/setup.sql` の中身を**全部**コピーして SQL Editor に貼り付け、何も選択していない状態で「Run」を押す（`supabase/migrations` の2ファイルをつなげたもの。PCからなら `npx supabase link` → `npx supabase db push` でも可）
 2. **Google ログイン**：Google Cloud Console で OAuth クライアント（ウェブアプリケーション）を作り、承認済みのリダイレクト URI に `https://<プロジェクト>.supabase.co/auth/v1/callback` を登録する。発行されたクライアント ID とシークレットを Supabase の Authentication > Sign In / Providers > Google に設定する
 3. **Supabase の URL 設定**：Authentication > URL Configuration の Site URL に本番 URL、Redirect URLs に `https://<本番ドメイン>/auth/callback` を追加する
 4. **Vercel**：このリポジトリをインポートし、環境変数 `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` を設定する（値は Supabase の Project Settings > API Keys）
