@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useClaps } from "@/components/use-claps";
 import { formatWeekdays } from "@/lib/dates";
-import { computeStats } from "@/lib/habit-stats";
+import { computeStats, countsByDate } from "@/lib/habit-stats";
 import { currentWeekdays } from "@/lib/habits";
 import { todayStatus } from "@/lib/room-stats";
 import type { RoomMember } from "@/lib/rooms";
@@ -11,7 +11,8 @@ import type { RoomMember } from "@/lib/rooms";
 export function MemberRow({ member, roomId, myId, ownerId, today }: { member: RoomMember; roomId: string; myId: string; ownerId: string; today: string }) {
   const { habit } = member;
   const { counts, mine, toggle, pending } = useClaps(habit, myId);
-  const stats = computeStats(habit.start_date, habit.habit_schedules, new Set(habit.stamps.map((s) => s.date)), today);
+  const stats = computeStats(habit.start_date, habit.habit_schedules, countsByDate(habit.stamps), today);
+  const todayCount = habit.stamps.find((s) => s.date === today)?.count ?? 0;
   const status = todayStatus(habit, today);
   const isMe = member.user_id === myId;
   const clapCount = counts.get(today) ?? 0;
@@ -25,7 +26,7 @@ export function MemberRow({ member, roomId, myId, ownerId, today }: { member: Ro
           {member.user_id === ownerId && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 text-[10px] text-amber-800 dark:bg-amber-900 dark:text-amber-100">オーナー</span>}
         </p>
         <p className="mt-0.5 text-xs text-stone-500">
-          {formatWeekdays(currentWeekdays(habit, today))} ・ 🔥{stats.currentStreak}回連続 ・ 累計{stats.total}日
+          {formatWeekdays(currentWeekdays(habit, today))} ・ 🔥{stats.currentStreak}回連続 ・ 累計{stats.total}日（{stats.totalTimes}回）
         </p>
       </Link>
       {status === "done" && !isMe ? (
@@ -38,7 +39,7 @@ export function MemberRow({ member, roomId, myId, ownerId, today }: { member: Ro
             mine.has(today) ? "bg-amber-300 text-stone-900" : "bg-stone-100 dark:bg-stone-800"
           }`}
         >
-          ✅ 👏{clapCount > 0 && clapCount}
+          ✅{todayCount >= 2 && `×${todayCount}`} 👏{clapCount > 0 && clapCount}
         </button>
       ) : (
         <span
@@ -46,7 +47,7 @@ export function MemberRow({ member, roomId, myId, ownerId, today }: { member: Ro
             status === "done" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200" : "bg-stone-100 text-stone-500 dark:bg-stone-800"
           }`}
         >
-          {status === "done" ? `✅${clapCount > 0 ? ` 👏${clapCount}` : ""}` : status === "todo" ? "⬜ まだ" : "お休み"}
+          {status === "done" ? `✅${todayCount >= 2 ? `×${todayCount}` : ""}${clapCount > 0 ? ` 👏${clapCount}` : ""}` : status === "todo" ? "⬜ まだ" : "お休み"}
         </span>
       )}
     </li>

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { appToday, isStampable, monthGrid } from "./dates";
-import { computeStats, isComeback, isScheduledDay, type Schedule } from "./habit-stats";
+import { computeStats, countsByDate, isComeback, isScheduledDay, type Schedule } from "./habit-stats";
 
 // 2026-09-28 は月曜日
 const MWF: Schedule[] = [{ weekdays: [1, 3, 5], valid_from: "2026-09-28" }];
-const stamps = (...dates: string[]) => new Set(dates);
+// 日付 → 回数（どの日も1回）
+const stamps = (...dates: string[]) => new Map(dates.map((d) => [d, 1]));
 
 describe("appToday", () => {
   it("日本時間の午前3時で日付が変わる", () => {
@@ -27,7 +28,7 @@ describe("isStampable", () => {
 describe("computeStats", () => {
   it("要件定義書の例：月・水・金＋火曜にスタンプ、今日(金)は未", () => {
     const result = computeStats("2026-09-28", MWF, stamps("2026-09-28", "2026-09-29", "2026-09-30"), "2026-10-02");
-    expect(result).toEqual({ total: 3, currentStreak: 2, longestStreak: 2 });
+    expect(result).toEqual({ total: 3, totalTimes: 3, currentStreak: 2, longestStreak: 2 });
   });
 
   it("実施日以外の日は連続を途切れさせない", () => {
@@ -37,7 +38,7 @@ describe("computeStats", () => {
 
   it("過去の実施日の押し忘れで途切れる", () => {
     const result = computeStats("2026-09-28", MWF, stamps("2026-09-28", "2026-10-02"), "2026-10-02");
-    expect(result).toEqual({ total: 2, currentStreak: 1, longestStreak: 1 });
+    expect(result).toEqual({ total: 2, totalTimes: 2, currentStreak: 1, longestStreak: 1 });
   });
 
   it("後から押し忘れを埋めると連続が復活する", () => {
@@ -69,7 +70,27 @@ describe("computeStats", () => {
       stamps("2026-09-28", "2026-09-30", "2026-10-02", "2026-10-07"),
       "2026-10-07",
     );
-    expect(result).toEqual({ total: 4, currentStreak: 1, longestStreak: 3 });
+    expect(result).toEqual({ total: 4, totalTimes: 4, currentStreak: 1, longestStreak: 3 });
+  });
+});
+
+describe("1日に複数回", () => {
+  it("回数は累計回数にだけ足され、やった日・連続は変わらない", () => {
+    const counts = new Map([
+      ["2026-09-28", 2],
+      ["2026-09-30", 3],
+      ["2026-10-01", 1], // 実施日以外
+    ]);
+    expect(computeStats("2026-09-28", MWF, counts, "2026-10-02")).toEqual({
+      total: 3,
+      totalTimes: 6,
+      currentStreak: 2,
+      longestStreak: 2,
+    });
+  });
+
+  it("countsByDate はスタンプの一覧を日付→回数にする", () => {
+    expect(countsByDate([{ date: "2026-10-01", count: 2 }])).toEqual(new Map([["2026-10-01", 2]]));
   });
 });
 

@@ -13,7 +13,7 @@ import { StampCalendar } from "./stamp-calendar";
 export function HabitDetail({ habit, today }: { habit: Habit; today: string }) {
   const router = useRouter();
   const { showError } = usePraise();
-  const { stamps, stats, toggle, pending } = useStamps(habit, today);
+  const { stamps, stats, add: addStamp, remove: removeStamp, pending } = useStamps(habit, today);
   const [busy, setBusy] = useState(false);
   const archived = habit.archived_at !== null;
   const isRoom = habit.room_id !== null;
@@ -44,7 +44,7 @@ export function HabitDetail({ habit, today }: { habit: Habit; today: string }) {
   const tiles = [
     { label: "現在の連続", value: stats.currentStreak, unit: "回" },
     { label: "最長連続", value: stats.longestStreak, unit: "回" },
-    { label: "累計", value: stats.total, unit: "日" },
+    { label: "累計", value: stats.total, unit: "日", sub: `合計 ${stats.totalTimes}回` },
   ];
 
   return (
@@ -73,11 +73,12 @@ export function HabitDetail({ habit, today }: { habit: Habit; today: string }) {
               {tile.value}
               <span className="ml-0.5 text-sm font-bold">{tile.unit}</span>
             </dd>
+            {tile.sub && <dd className="mt-0.5 text-xs font-bold text-stone-500 dark:text-stone-400">{tile.sub}</dd>}
           </div>
         ))}
       </dl>
 
-      <StampCalendar habit={habit} today={today} stamps={stamps} pending={pending} claps={claps} onToggle={archived ? undefined : toggle} />
+      <StampCalendar habit={habit} today={today} stamps={stamps} pending={pending} claps={claps} onAdd={archived ? undefined : addStamp} onRemove={archived ? undefined : removeStamp} />
 
       <div className="grid gap-2 pt-2">
         {!archived && (

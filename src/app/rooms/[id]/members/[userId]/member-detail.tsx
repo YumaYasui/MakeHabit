@@ -5,7 +5,7 @@ import { useState } from "react";
 import { usePraise } from "@/components/praise-provider";
 import { useClaps } from "@/components/use-claps";
 import { formatWeekdays } from "@/lib/dates";
-import { computeStats } from "@/lib/habit-stats";
+import { computeStats, countsByDate } from "@/lib/habit-stats";
 import { COLOR_CLASSES, currentWeekdays, errorMessage } from "@/lib/habits";
 import type { RoomMember } from "@/lib/rooms";
 import { createClient } from "@/lib/supabase/client";
@@ -17,8 +17,8 @@ export function MemberDetail({ member, roomId, myId, isOwner, today }: { member:
   const { habit } = member;
   const { counts, mine, toggle, pending } = useClaps(habit, myId);
   const [busy, setBusy] = useState(false);
-  const stamps = new Map(habit.stamps.map((s) => [s.date, s.is_late]));
-  const stats = computeStats(habit.start_date, habit.habit_schedules, new Set(stamps.keys()), today);
+  const stamps = new Map(habit.stamps.map((s) => [s.date, { late: s.is_late, count: s.count }]));
+  const stats = computeStats(habit.start_date, habit.habit_schedules, countsByDate(habit.stamps), today);
 
   async function removeMember() {
     if (!window.confirm(`${member.display_name}さんをルームから外します。外した人は再参加できません。よろしいですか？`)) return;
@@ -33,7 +33,7 @@ export function MemberDetail({ member, roomId, myId, isOwner, today }: { member:
   const tiles = [
     { label: "現在の連続", value: stats.currentStreak, unit: "回" },
     { label: "最長連続", value: stats.longestStreak, unit: "回" },
-    { label: "累計", value: stats.total, unit: "日" },
+    { label: "累計", value: stats.total, unit: "日", sub: `合計 ${stats.totalTimes}回` },
   ];
 
   return (
@@ -49,6 +49,7 @@ export function MemberDetail({ member, roomId, myId, isOwner, today }: { member:
               {tile.value}
               <span className="ml-0.5 text-sm font-bold">{tile.unit}</span>
             </dd>
+            {tile.sub && <dd className="mt-0.5 text-xs font-bold text-stone-500 dark:text-stone-400">{tile.sub}</dd>}
           </div>
         ))}
       </dl>

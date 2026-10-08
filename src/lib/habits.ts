@@ -3,6 +3,9 @@ import type { Schedule, Stamp } from "./habit-stats";
 
 export const MAX_HABITS = 10;
 
+/** 1日に押せるスタンプの回数の上限 */
+export const MAX_STAMPS_PER_DAY = 10;
+
 export type Habit = {
   id: string;
   user_id: string;
@@ -17,7 +20,7 @@ export type Habit = {
 };
 
 export const HABIT_COLUMNS =
-  "id, user_id, room_id, name, icon, color, start_date, archived_at, habit_schedules(weekdays, valid_from), stamps(id, date, is_late, reactions(user_id))";
+  "id, user_id, room_id, name, icon, color, start_date, archived_at, habit_schedules(weekdays, valid_from), stamps(id, date, is_late, count, reactions(user_id))";
 
 /** ログイン中のユーザーID（proxy で確認済みの JWT から取り出す） */
 export async function currentUserId(supabase: SupabaseClient): Promise<string | null> {
@@ -72,6 +75,7 @@ export function errorMessage(error: { message?: string } | null | undefined): st
   if (message.includes("invite_not_found")) return "この招待URLは使えません。オーナーに新しいURLをもらってください。";
   if (message.includes("new_owner_required")) return "次のオーナーを選んでください。";
   if (message.includes("not_room_owner")) return "オーナーだけができる操作です。";
-  if (message.includes("row-level security")) return "この日はスタンプを押せません。";
+  if (message.includes("stamp_limit_reached")) return `1日${MAX_STAMPS_PER_DAY}回までです。`;
+  if (message.includes("row-level security") || message.includes("stamp_not_found")) return "この日はスタンプを変更できません。";
   return "うまくいきませんでした。通信状況を確認して、もう一度お試しください。";
 }

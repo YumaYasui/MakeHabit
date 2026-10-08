@@ -28,6 +28,15 @@
 3. **Supabase の URL 設定**：Authentication > URL Configuration の Site URL に本番 URL、Redirect URLs に `https://<本番ドメイン>/auth/callback` を追加する
 4. **Vercel**：このリポジトリをインポートし、環境変数 `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` を設定する（値は Supabase の Project Settings > API Keys）
 
+## データベースの更新（すでに動いている環境）
+
+`supabase/migrations` に新しいファイルが追加されたら、**そのファイルだけ**を SQL Editor で実行する（`setup.sql` は新しく作る環境用）。
+**コードを公開する前に**実行すること（新しいコードは新しい列や関数を使うため）。
+
+| ファイル | 内容 |
+|---|---|
+| `20261008000000_stamp_counts.sql` | 1日に複数回スタンプを押せるようにする |
+
 ## ローカル開発
 
 Docker が必要。

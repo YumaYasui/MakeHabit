@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { praiseFor } from "./praise";
 
-const stats = (total: number, currentStreak: number) => ({ total, currentStreak, longestStreak: currentStreak });
+const stats = (total: number, currentStreak: number, totalTimes = total) => ({ total, totalTimes, currentStreak, longestStreak: currentStreak });
 const normal = { isLate: false, isComeback: false };
 
 describe("praiseFor", () => {
@@ -31,6 +31,16 @@ describe("praiseFor", () => {
 
   it("後押しで節目を越えたら節目を優先", () => {
     expect(praiseFor(stats(4, 1), stats(5, 3), { isLate: true, isComeback: false }).message).toContain("3回連続");
+  });
+
+  it("同じ日の2回目以降は回数を添えて褒める", () => {
+    const praise = praiseFor(stats(5, 2, 5), stats(5, 2, 6), { isLate: false, isComeback: false, timesThatDay: 2 });
+    expect(praise).toEqual({ message: expect.stringMatching(/^2回目！/), celebrate: false });
+  });
+
+  it("累計回数の節目で祝う", () => {
+    const praise = praiseFor(stats(5, 2, 9), stats(5, 2, 10), { isLate: false, isComeback: false, timesThatDay: 2 });
+    expect(praise).toEqual({ message: expect.stringContaining("累計10回"), celebrate: true });
   });
 
   it("久しぶりの再開はおかえり", () => {
